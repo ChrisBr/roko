@@ -214,6 +214,7 @@ func (r *Retrier) Do(callback func(*Retrier) error) error {
 	var err error
 	for {
 		// Perform the action the user has requested we retry
+		r.MarkAttempt()
 		err = callback(r)
 		if err == nil {
 			return nil
@@ -224,8 +225,6 @@ func (r *Retrier) Do(callback func(*Retrier) error) error {
 		// ie, we would wait 2^1, 2^2, 2^3, ..., 2^n+1 seconds (bad)
 		// instead of        2^0, 2^1, 2^2, ..., 2^n seconds (good)
 		nextInterval := r.NextInterval()
-
-		r.MarkAttempt()
 
 		// If the last callback called r.Break(), or if we've hit our call limit, bail out and return the last error we got (or nil)
 		if r.ShouldGiveUp() {
